@@ -385,6 +385,7 @@ class AddressesIndexer:
         return self._addrs
 
     def _callback(self, macho_file, dylib_path, seg, slide, dsc_offset):
+        # print "[+] 0x%08X:0x%08X %s 0x%08X:0x%08X" % (seg.vmaddr, seg.vmsize, dylib_path, seg.fileoff, dsc_offset)
         self._addrs.append((seg.vmaddr,
                             seg.vmsize,
                             dylib_path,
@@ -642,6 +643,8 @@ def label_and_fix_branch_islands(dsc_file, adrfind, jmp_to_code):
         res = adrfind.find(addr)
         if not res:
             print "[!] coudln't find addr for addr:", addr
+            i += 1
+            continue
         dylib_path, dsc_offset, macho_offset = res
         exportname = adrfind.get_export_name_for_addr(addr)
         if _IN_IDA:
@@ -741,7 +744,7 @@ def main():
 
     print "[+] about to parse %s.." % (dsc_path)
     dsc_file = open(dsc_path, "rb")
-    adrfind = AddrFinder(dsc_file, cache_symbols=False)
+    adrfind = AddrFinder(dsc_file, cache_symbols=True)
     map_shared_bridges(dsc_file, adrfind)
     if _IN_IDA:
         addresses = sorted(set(get_bad_addresses()))
