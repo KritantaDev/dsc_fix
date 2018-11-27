@@ -671,7 +671,12 @@ def map_segments(segments, dsc_file, verbose=True):
     for segaddr, segsize, segdata in segments:
         print "[+] creating seg: 0x%08X: %d" % (segaddr, segsize)
         # check that there are no existing segments in that address
-        if idc.SegStart(segaddr) == idc.BADADDR:
+        seg_start = idc.BADADDR
+        try:
+		    seg_start = idc.SegStart(segaddr)
+        except Exception:
+            pass
+        if seg_start == idc.BADADDR:
             idc.AddSegEx(segaddr,
                          segaddr + segsize, 0, 0,
                          idaapi.saRelPara, idaapi.scPub,
@@ -716,7 +721,12 @@ def map_exports(exports, verbose=True):
     for addr, export_name in exports:
         print "[+] creating export", export_name
         # check that there are no existing segments in that address
-        if idc.SegStart(addr) == idc.BADADDR:
+        seg_start = idc.BADADDR
+        try:
+		    seg_start = idc.SegStart(addr)
+        except Exception:
+            pass
+        if seg_start == idc.BADADDR:
             print "[+] creating seg: 0x%08X: %d" % (addr, 4)
             idc.AddSegEx(addr,
                          addr + 4, 0, 0,
@@ -752,7 +762,7 @@ def main():
         addresses = sorted(set(eval(open("addrs.txt", "rb").read())))
 
     segments, exports = get_segments_and_exports_for_addresses(addresses, adrfind)
-    # segments = join_neighbors(segments, threshold=0x1000)
+    segments = join_neighbors(segments, threshold=0x1000)
     if _IN_IDA:
         map_segments(segments, dsc_file)
         map_exports(exports)
